@@ -1,0 +1,61 @@
+<!-- src/app/components/scanner/scanner.component.html -->
+<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+
+  <!-- Columna Izquierda: Formulario de Escaneo -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-gray-700 mb-4">Registro de Comidas</h2>
+    <p class="text-gray-500 mb-6">Ingresa el código de barras del carné para registrar la comida del día.</p>
+
+    <form (ngSubmit)="registrarComida()">
+      <div class="mb-4">
+        <label for="barcode" class="block text-sm font-medium text-gray-600 mb-1">Código de Barras</label>
+        <input
+          type="text"
+          id="barcode"
+          name="barcode"
+          [(ngModel)]="barcodeValue"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#cddc39] focus:border-[#cddc39] transition"
+          placeholder="123456789"
+          required
+          autofocus
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-gray-800 text-white font-bold py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition-transform transform hover:scale-105"
+      >
+        Registrar Comida
+      </button>
+    </form>
+  </div>
+
+  <!-- Columna Derecha: Información del Usuario -->
+  <div class="bg-white p-6 rounded-lg shadow-md min-h-[250px]">
+    <h3 class="text-xl font-bold text-gray-700 mb-4">Información del Empleado</h3>
+    <!-- Estado Inicial -->
+    <div *ngIf="!scannedUser" class="text-center text-gray-400 pt-10">
+      <p>Esperando escaneo...</p>
+    </div>
+    <!-- Información del Usuario Escaneado -->
+    <div *ngIf="scannedUser">
+      <p class="text-lg"><span class="font-semibold">Nombre:</span> {{ scannedUser.name }}</p>
+      <p class="text-gray-600"><span class="font-semibold">ID:</span> {{ scannedUser.employeeId }}</p>
+      <hr class="my-4">
+      <h4 class="font-semibold mb-2">Comidas de Hoy:</h4>
+      <div class="flex space-x-2">
+        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('breakfast')">Desayuno</span>
+        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('lunch')">Almuerzo</span>
+        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('dinner')">Cena</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Notificación Flotante (Toast) -->
+<div *ngIf="notification.message"
+  class="fixed bottom-5 right-5 px-6 py-3 rounded-lg text-white shadow-xl transition-opacity duration-300"
+  [ngClass]="notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'"
+>
+  {{ notification.message }}
+</div>
