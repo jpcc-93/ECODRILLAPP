@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms'; // Importamos NgForm
-import { Observable } from 'rxjs';
-import { FirebaseService, Employee, MealRecord } from '../../services/firebase';
+import { FormsModule, NgForm } from '@angular/forms';
+import { Observable, firstValueFrom } from 'rxjs';
+import { FirebaseService, Employee } from '../../services/firebase';
 
 @Component({
   selector: 'app-admin',
@@ -15,36 +15,37 @@ export class Admin implements OnInit {
 
   employees$!: Observable<Employee[]>;
   newEmployee: Employee = { id: '', name: '' };
+  isLoading = false;
 
   ngOnInit(): void {
     this.employees$ = this.firebaseService.getEmployees();
   }
 
-  onAddEmployee(form?: NgForm) {
-    if (!this.newEmployee.id || !this.newEmployee.name) {
+  async onAddEmployee(form: NgForm) {
+    if (!form.valid) {
       alert('Todos los campos son obligatorios');
       return;
     }
 
-
-
-    this.firebaseService.getEmployees().subscribe(employees => {
+    this.isLoading = true;
+    try {
+      // Obtenemos la lista actual de empleados una sola vez
+      const employees = await firstValueFrom(this.firebaseService.getEmployees());
       const employeeExists = employees.some(emp => emp.id === this.newEmployee.id);
+
       if (employeeExists) {
         alert('Ya existe un empleado con este ID.');
-        this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
       } else {
-        this.firebaseService.addEmployee(this.newEmployee)
-          .then(() => {
-            alert('¡Empleado añadido con éxito!');
-            if (form) {
-              form.resetForm();
-            }
-            this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
-          })
-          .catch(err => alert('Error al añadir empleado: ' + err.message));
+        await this.firebaseService.addEmployee(this.newEmployee);
+        alert('¡Empleado añadido con éxito!');
+        form.resetForm();
+        this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto manualmente
       }
-    });
+    } catch (err) {
+      alert('Error al añadir empleado: ' + (err as Error).message);
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   onDeleteEmployee(id: string) {

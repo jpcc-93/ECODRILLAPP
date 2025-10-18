@@ -11,9 +11,14 @@ import { authGuard } from './auth/auth-guard';
 export const routes: Routes = [
    // RUTAS PÚBLICAS
   { path: 'login', component: Login },
-  { path: 'scanner', component: Scanner },
 
   // RUTAS PROTEGIDAS
+  { 
+    path: 'scanner', 
+    component: Scanner, 
+    canActivate: [authGuard],
+    data: { roles: ['admin', 'aux'] }
+  },
   { 
     path: 'admin', 
     component: Admin, 
@@ -24,7 +29,7 @@ export const routes: Routes = [
     path: 'reports', 
     component: Reports, 
     canActivate: [authGuard], // Aplicamos el guardia también aquí
-    data: { roles: ['admin', 'aux'] } // 'admin' y 'aux' pueden ver los reportes
+    data: { roles: ['admin'] } // Solo 'admin' puede ver los reportes
   },
 
   // Redirecciones

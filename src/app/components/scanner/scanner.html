@@ -7,38 +7,45 @@
     <p class="text-gray-600 mb-6">Ingresa el código de barras del carné para registrar la comida del día.</p>
 
     <form (ngSubmit)="onRegisterMeal()">
-      <div class="mb-4">
-        <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
-        <input type="text" name="barcode" [(ngModel)]="barcodeId" placeholder="123456789" required class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39] text-lg">
-      </div>
-
-      <!-- ¡NUEVA SECCIÓN DE MODO MANUAL! -->
-      <div class="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
-        <div class="flex items-center">
-          <input type="checkbox" id="manualMode" name="manualMode" [(ngModel)]="isManualMode" class="h-4 w-4 text-[#cddc39] focus:ring-[#afbd30] border-gray-300 rounded">
-          <label for="manualMode" class="ml-2 block text-sm font-medium text-gray-800">Activar Registro Manual</label>
+      <fieldset [disabled]="isLoading">
+        <div class="mb-4">
+          <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
+          <input type="text" name="barcode" [(ngModel)]="barcodeId" placeholder="123456789" required class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39] text-lg">
         </div>
 
-        <!-- Este selector solo aparece si el checkbox está activo -->
-        <div *ngIf="isManualMode" class="mt-4">
-          <label for="mealType" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Comida</label>
-          <select name="mealType" [(ngModel)]="manualMealType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
-            <option value="Desayuno">Desayuno</option>
-            <option value="Almuerzo">Almuerzo</option>
-            <option value="Cena">Cena</option>
-          </select>
-        </div>
-      </div>
-      <!-- FIN DE LA SECCIÓN MANUAL -->
+        <!-- ¡NUEVA SECCIÓN DE MODO MANUAL! -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
+          <div class="flex items-center">
+            <input type="checkbox" id="manualMode" name="manualMode" [(ngModel)]="isManualMode" class="h-4 w-4 text-[#cddc39] focus:ring-[#afbd30] border-gray-300 rounded">
+            <label for="manualMode" class="ml-2 block text-sm font-medium text-gray-800">Activar Registro Manual</label>
+          </div>
 
-      <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-md hover:bg-gray-700 transition-all text-lg">
-        Registrar Comida
-      </button>
+          <!-- Este selector solo aparece si el checkbox está activo -->
+          <div *ngIf="isManualMode" class="mt-4">
+            <label for="mealType" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Comida</label>
+            <select name="mealType" [(ngModel)]="manualMealType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
+              <option value="Desayuno">Desayuno</option>
+              <option value="Almuerzo">Almuerzo</option>
+              <option value="Cena">Cena</option>
+            </select>
+          </div>
+        </div>
+        <!-- FIN DE LA SECCIÓN MANUAL -->
+
+        <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-md hover:bg-gray-700 transition-all text-lg disabled:bg-gray-400">
+          <span *ngIf="!isLoading">Registrar Comida</span>
+          <span *ngIf="isLoading">Procesando...</span>
+        </button>
+      </fieldset>
     </form>
   </div>
 
   <!-- Columna Derecha: Información del Empleado -->
-  <div class="bg-white p-6 rounded-lg shadow-md">
+  <div class="relative bg-white p-6 rounded-lg shadow-md">
+    <!-- Overlay de Carga -->
+    <div *ngIf="isLoading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-800"></div>
+    </div>
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Información del Empleado</h2>
 
     <div *ngIf="scannedEmployee; else waiting" class="space-y-4">

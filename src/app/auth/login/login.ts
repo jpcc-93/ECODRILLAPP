@@ -11,21 +11,26 @@ import { FirebaseService } from '../../services/firebase';
   styleUrl: './login.css'
 })
 export class Login {
-private firebaseService = inject(FirebaseService);
+  private firebaseService = inject(FirebaseService);
   private router = inject(Router);
   errorMessage: string | null = null;
+  isLoading = false;
 
-  onSubmit(form: NgForm) {
+  async onSubmit(form: NgForm) {
     if (!form.valid) return;
 
-    this.firebaseService.login(form.value)
-      .then(response => {
-        console.log(response);
-        this.router.navigate(['/scanner']); // Redirige al scanner después del login
-      })
-      .catch(error => {
-        console.error(error);
-        this.errorMessage = 'Credenciales inválidas. Por favor, intenta de nuevo.';
-      });
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    try {
+      const response = await this.firebaseService.login(form.value);
+      console.log(response);
+      this.router.navigate(['/scanner']); // Redirige al scanner después del login
+    } catch (error) {
+      console.error(error);
+      this.errorMessage = 'Credenciales inválidas. Por favor, intenta de nuevo.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 }

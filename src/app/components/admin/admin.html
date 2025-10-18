@@ -10,17 +10,18 @@
       <!-- Campo Nombre -->
       <div class="col-span-1">
         <label for="name" class="block text-sm font-medium text-gray-600">Nombre Completo</label>
-        <input type="text" name="name" [(ngModel)]="newEmployee.name" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
+        <input type="text" name="name" [(ngModel)]="newEmployee.name" required [disabled]="isLoading" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
       </div>
        <!-- Campo ID de Carné (Código de Barras) -->
        <div class="col-span-1">
         <label for="id" class="block text-sm font-medium text-gray-600">ID de Carné (Código Barras)</label>
-        <input type="text" name="id" [(ngModel)]="newEmployee.id" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
+        <input type="text" name="id" [(ngModel)]="newEmployee.id" required [disabled]="isLoading" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
       </div>
       <!-- Botón -->
       <div class="md:col-span-3">
-        <button type="submit" [disabled]="!employeeForm.form.valid" class="w-full md:w-auto bg-gray-800 text-white font-bold py-2 px-6 rounded-md hover:bg-gray-700 disabled:bg-gray-400 transition-all">
-          Añadir Empleado
+        <button type="submit" [disabled]="!employeeForm.form.valid || isLoading" class="w-full md:w-auto bg-gray-800 text-white font-bold py-2 px-6 rounded-md hover:bg-gray-700 disabled:bg-gray-400 transition-all">
+          <span *ngIf="!isLoading">Añadir Empleado</span>
+          <span *ngIf="isLoading">Añadiendo...</span>
         </button>
       </div>
     </form>

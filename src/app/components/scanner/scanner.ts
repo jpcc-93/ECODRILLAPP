@@ -20,49 +20,58 @@ export class Scanner {
   scannedEmployee: Employee | null = null;
   todayMeals: MealType[] = [];
   notification: { message: string, type: NotificationType } = { message: '', type: 'success' };
+  isLoading = false;
 
   // Nuevas propiedades para el modo manual
   isManualMode: boolean = false;
   manualMealType: MealType = 'Almuerzo'; // Valor por defecto
 
- async onRegisterMeal() {if (!this.barcodeId) {
+  async onRegisterMeal() {
+    if (!this.barcodeId) {
       this.showNotification('Por favor, ingresa un código de barras.', 'error');
       return;
     }
 
-    // 1. Buscar al empleado
-    this.scannedEmployee = await this.firebaseService.getEmployee(this.barcodeId);
-    if (!this.scannedEmployee) {
-      this.showNotification('Empleado no encontrado. Verifica el código.', 'error');
-      return;
-    }
-
-    // 2. Revisar las comidas que ya ha tomado hoy
-    const meals = await this.firebaseService.getTodayMeals(this.barcodeId);
-    this.todayMeals = meals.map(m => m.mealType);
-
-    // 3. Determinar qué comida registrar (Automático vs Manual)
-    const mealToRegister = this.isManualMode ? this.manualMealType : this.getMealTypeByTime();
-
-    // 4. Verificar si ya tomó esa comida
-    if (this.todayMeals.includes(mealToRegister)) {
-      this.showNotification(`Este empleado ya registró el ${mealToRegister} de hoy.`, 'error');
-      return;
-    }
-
-    // 5. Crear el registro y guardarlo en Firebase
-    const newRecord: Omit<MealRecord, 'timestamp'> = {
-      userId: this.barcodeId,
-      mealType: mealToRegister,
-      date: new Date().toISOString().split('T')[0]
-    };
+    this.isLoading = true;
+    this.scannedEmployee = null; // Limpiar resultados anteriores
 
     try {
+      // 1. Buscar al empleado
+      this.scannedEmployee = await this.firebaseService.getEmployee(this.barcodeId);
+      if (!this.scannedEmployee) {
+        this.showNotification('Empleado no encontrado. Verifica el código.', 'error');
+        return; // Sale del bloque try, pero finally se ejecutará
+      }
+
+      // 2. Revisar las comidas que ya ha tomado hoy
+      const meals = await this.firebaseService.getTodayMeals(this.barcodeId);
+      this.todayMeals = meals.map(m => m.mealType);
+
+      // 3. Determinar qué comida registrar (Automático vs Manual)
+      const mealToRegister = this.isManualMode ? this.manualMealType : this.getMealTypeByTime();
+
+      // 4. Verificar si ya tomó esa comida
+      if (this.todayMeals.includes(mealToRegister)) {
+        this.showNotification(`Este empleado ya registró el ${mealToRegister} de hoy.`, 'error');
+        return; // Sale del bloque try
+      }
+
+      // 5. Crear el registro y guardarlo en Firebase
+      const newRecord: Omit<MealRecord, 'timestamp'> = {
+        userId: this.barcodeId,
+        mealType: mealToRegister,
+        date: new Date().toISOString().split('T')[0]
+      };
+
       await this.firebaseService.registerMeal(newRecord);
       this.todayMeals.push(mealToRegister);
       this.showNotification(`¡${mealToRegister.charAt(0).toUpperCase() + mealToRegister.slice(1)} registrado para ${this.scannedEmployee.name} exitosamente!`, 'success');
+
     } catch (error) {
-      this.showNotification('Ocurrió un error al registrar la comida.', 'error');
+      this.showNotification('Ocurrió un error al procesar la solicitud.', 'error');
+      console.error(error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
