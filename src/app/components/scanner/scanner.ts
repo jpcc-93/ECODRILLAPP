@@ -51,7 +51,7 @@ export class Scanner {
     }
 
     // 5. Crear el registro y guardarlo en Firebase
-    const newRecord: MealRecord = {
+    const newRecord: Omit<MealRecord, 'timestamp'> = {
       userId: this.barcodeId,
       mealType: mealToRegister,
       date: new Date().toISOString().split('T')[0]

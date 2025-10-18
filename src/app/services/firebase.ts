@@ -14,6 +14,7 @@ export interface MealRecord {
   userId: string;
   mealType: 'Desayuno' | 'Almuerzo' | 'Cena';
   date: string; // Formato YYYY-MM-DD
+  timestamp: number;
 }
 
 // Una nueva interfaz para los reportes, que incluye el nombre del empleado
@@ -45,10 +46,10 @@ export class FirebaseService {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MealRecord));
   }
 
-  async registerMeal(record: MealRecord): Promise<void> {
+  async registerMeal(record: Omit<MealRecord, 'timestamp'>): Promise<void> {
     const docId = `${record.userId}_${record.date}_${record.mealType}_${Math.random().toString(36).substring(2, 15)}`
     const mealDocRef = doc(this.firestore, `meal_records/${docId}`);
-    await setDoc(mealDocRef, record);
+    await setDoc(mealDocRef, { ...record, timestamp: Date.now() });
   }
 
   deleteMeal(mealId: string): Promise<void> {
@@ -64,6 +65,20 @@ export class FirebaseService {
   addEmployee(employee: Employee): Promise<void> {
     const employeeDocRef = doc(this.firestore, `employees/${employee.id!}`);
     return setDoc(employeeDocRef, { name: employee.name });
+  }
+
+  async deleteAllData(): Promise<void> {
+    const employeesCollectionRef = collection(this.firestore, 'employees');
+    const employeesSnapshot = await getDocs(employeesCollectionRef);
+    employeesSnapshot.forEach(doc => {
+      deleteDoc(doc.ref);
+    });
+
+    const mealRecordsCollectionRef = collection(this.firestore, 'meal_records');
+    const mealRecordsSnapshot = await getDocs(mealRecordsCollectionRef);
+    mealRecordsSnapshot.forEach(doc => {
+      deleteDoc(doc.ref);
+    });
   }
 
   deleteEmployee(barcodeId: string): Promise<void> {
@@ -90,6 +105,6 @@ export class FirebaseService {
       };
     });
 
-    return reportEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return reportEntries.sort((a, b) => b.timestamp - a.timestamp);
   }
 }

@@ -32,6 +32,7 @@ export class Admin implements OnInit {
       const employeeExists = employees.some(emp => emp.id === this.newEmployee.id);
       if (employeeExists) {
         alert('Ya existe un empleado con este ID.');
+        this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
       } else {
         this.firebaseService.addEmployee(this.newEmployee)
           .then(() => {

@@ -55,7 +55,7 @@ export class Reports {
 
     const dataForExcel = this.reportData.map(entry => ({
       Cedula: entry.userId,
-      Fecha: entry.date,
+      Fecha: new Date(entry.timestamp).toLocaleString(),
       Empleado: entry.employeeName,
       Comida: entry.mealType.charAt(0).toUpperCase() + entry.mealType.slice(1)
     }));
