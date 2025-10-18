@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Necesario para ngModel
+import { FormsModule } from '@angular/forms';
+import { FirebaseService, Employee, MealRecord } from '../../services/firebase';
+
+type MealType = 'Desayuno' | 'Almuerzo' | 'Cena';
+type NotificationType = 'success' | 'error';
 
 @Component({
   selector: 'app-scanner',
@@ -9,44 +13,85 @@ import { FormsModule } from '@angular/forms'; // Necesario para ngModel
   styleUrl: './scanner.css'
 })
 export class Scanner {
-  barcodeValue: string = '';
-  scannedUser: any = null; // Aquí guardaremos la info del usuario escaneado
-  notification = { message: '', type: 'success' };
 
-  // Esta es la función que se llama al presionar el botón
-  registrarComida() {
-    console.log('Registrando código:', this.barcodeValue);
+  private firebaseService = inject(FirebaseService);
+  
+  barcodeId: string = '';
+  scannedEmployee: Employee | null = null;
+  todayMeals: MealType[] = [];
+  notification: { message: string, type: NotificationType } = { message: '', type: 'success' };
 
-    // LÓGICA DE EJEMPLO (AQUÍ IRÁ LA CONEXIÓN A FIREBASE)
-    if (this.barcodeValue === '123456') {
-      this.scannedUser = {
-        name: 'Carlos Andrade',
-        employeeId: 'EMP-101',
-        meals: { breakfast: true, lunch: false, dinner: false } // Datos de ejemplo
-      };
-      this.showNotification('¡Almuerzo registrado con éxito!', 'success');
-    } else {
-      this.scannedUser = null;
-      this.showNotification('Error: Empleado no encontrado.', 'error');
+  // Nuevas propiedades para el modo manual
+  isManualMode: boolean = false;
+  manualMealType: MealType = 'Almuerzo'; // Valor por defecto
+
+ async onRegisterMeal() {if (!this.barcodeId) {
+      this.showNotification('Por favor, ingresa un código de barras.', 'error');
+      return;
     }
 
-    this.barcodeValue = ''; // Limpiamos el input
+    // 1. Buscar al empleado
+    this.scannedEmployee = await this.firebaseService.getEmployee(this.barcodeId);
+    if (!this.scannedEmployee) {
+      this.showNotification('Empleado no encontrado. Verifica el código.', 'error');
+      return;
+    }
+
+    // 2. Revisar las comidas que ya ha tomado hoy
+    const meals = await this.firebaseService.getTodayMeals(this.barcodeId);
+    this.todayMeals = meals.map(m => m.mealType);
+
+    // 3. Determinar qué comida registrar (Automático vs Manual)
+    const mealToRegister = this.isManualMode ? this.manualMealType : this.getMealTypeByTime();
+
+    // 4. Verificar si ya tomó esa comida
+    if (this.todayMeals.includes(mealToRegister)) {
+      this.showNotification(`Este empleado ya registró el ${mealToRegister} de hoy.`, 'error');
+      return;
+    }
+
+    // 5. Crear el registro y guardarlo en Firebase
+    const newRecord: MealRecord = {
+      userId: this.barcodeId,
+      mealType: mealToRegister,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    try {
+      await this.firebaseService.registerMeal(newRecord);
+      this.todayMeals.push(mealToRegister);
+      this.showNotification(`¡${mealToRegister.charAt(0).toUpperCase() + mealToRegister.slice(1)} registrado para ${this.scannedEmployee.name} exitosamente!`, 'success');
+    } catch (error) {
+      this.showNotification('Ocurrió un error al registrar la comida.', 'error');
+    }
   }
 
-  // Función para mostrar la notificación
-  showNotification(message: string, type: 'success' | 'error') {
+  // Devuelve el tipo de comida según la hora actual
+  private getMealTypeByTime(): MealType {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) { // 5:00 AM - 10:59 AM
+      return 'Desayuno';
+    } else if (hour >= 11 && hour < 16) { // 11:00 AM - 3:59 PM
+      return 'Almuerzo';
+    } else { // 4:00 PM en adelante
+      return 'Cena';
+    }
+  }
+
+  // Muestra una notificación y la borra después de 5 segundos
+  private showNotification(message: string, type: NotificationType) {
     this.notification = { message, type };
     setTimeout(() => {
-      this.notification.message = ''; // Oculta la notificación después de 3 segundos
-    }, 3000);
+      this.notification.message = '';
+    }, 5000);
   }
 
-  // Función para darle color al estado de la comida
-  getMealStatusClass(meal: 'breakfast' | 'lunch' | 'dinner'): string {
-    if (this.scannedUser?.meals[meal]) {
-      return 'bg-green-200 text-green-800'; // Comida registrada
+  // Devuelve la clase CSS para los badges de comida (D, A, C)
+  getMealBadgeClass(meal: MealType): string {
+    const baseClass = 'w-10 h-10 flex items-center justify-center rounded-full font-bold text-lg';
+    if (this.todayMeals.includes(meal)) {
+      return `${baseClass} bg-[#cddc39] text-gray-800`;
     }
-    return 'bg-gray-200 text-gray-800'; // Comida pendiente
+    return `${baseClass} bg-gray-200 text-gray-400`;
   }
-
 }

@@ -1,5 +1,6 @@
 <!-- src/app/components/admin/admin.component.html -->
 <div class="max-w-5xl mx-auto">
+  
   <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Empleados</h2>
 
   <!-- Formulario para Añadir Nuevo Empleado -->
@@ -10,11 +11,6 @@
       <div class="col-span-1">
         <label for="name" class="block text-sm font-medium text-gray-600">Nombre Completo</label>
         <input type="text" name="name" [(ngModel)]="newEmployee.name" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
-      </div>
-      <!-- Campo ID de Empleado -->
-      <div class="col-span-1">
-        <label for="employeeId" class="block text-sm font-medium text-gray-600">ID de Empleado (Ej: EMP-101)</label>
-        <input type="text" name="employeeId" [(ngModel)]="newEmployee.employeeId" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
       </div>
        <!-- Campo ID de Carné (Código de Barras) -->
        <div class="col-span-1">
@@ -38,7 +34,6 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Empleado</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Carné</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
           </tr>
@@ -46,7 +41,6 @@
         <tbody class="bg-white divide-y divide-gray-200">
           <tr *ngFor="let emp of employees$ | async">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ emp.name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ emp.employeeId }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ emp.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button (click)="onDeleteEmployee(emp.id!)" class="text-red-600 hover:text-red-900">Eliminar</button>

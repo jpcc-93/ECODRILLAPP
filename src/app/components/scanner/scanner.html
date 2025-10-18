@@ -1,61 +1,75 @@
 <!-- src/app/components/scanner/scanner.component.html -->
-<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+<div class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-  <!-- Columna Izquierda: Formulario de Escaneo -->
+  <!-- Columna Izquierda: Registro -->
   <div class="bg-white p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold text-gray-700 mb-4">Registro de Comidas</h2>
-    <p class="text-gray-500 mb-6">Ingresa el código de barras del carné para registrar la comida del día.</p>
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Registro de Comidas</h2>
+    <p class="text-gray-600 mb-6">Ingresa el código de barras del carné para registrar la comida del día.</p>
 
-    <form (ngSubmit)="registrarComida()">
+    <form (ngSubmit)="onRegisterMeal()">
       <div class="mb-4">
-        <label for="barcode" class="block text-sm font-medium text-gray-600 mb-1">Código de Barras</label>
-        <input
-          type="text"
-          id="barcode"
-          name="barcode"
-          [(ngModel)]="barcodeValue"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#cddc39] focus:border-[#cddc39] transition"
-          placeholder="123456789"
-          required
-          autofocus
-        />
+        <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
+        <input type="text" name="barcode" [(ngModel)]="barcodeId" placeholder="123456789" required class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39] text-lg">
       </div>
-      <button
-        type="submit"
-        class="w-full bg-gray-800 text-white font-bold py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition-transform transform hover:scale-105"
-      >
+
+      <!-- ¡NUEVA SECCIÓN DE MODO MANUAL! -->
+      <div class="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
+        <div class="flex items-center">
+          <input type="checkbox" id="manualMode" name="manualMode" [(ngModel)]="isManualMode" class="h-4 w-4 text-[#cddc39] focus:ring-[#afbd30] border-gray-300 rounded">
+          <label for="manualMode" class="ml-2 block text-sm font-medium text-gray-800">Activar Registro Manual</label>
+        </div>
+
+        <!-- Este selector solo aparece si el checkbox está activo -->
+        <div *ngIf="isManualMode" class="mt-4">
+          <label for="mealType" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Comida</label>
+          <select name="mealType" [(ngModel)]="manualMealType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#cddc39] focus:border-[#cddc39]">
+            <option value="Desayuno">Desayuno</option>
+            <option value="Almuerzo">Almuerzo</option>
+            <option value="Cena">Cena</option>
+          </select>
+        </div>
+      </div>
+      <!-- FIN DE LA SECCIÓN MANUAL -->
+
+      <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-md hover:bg-gray-700 transition-all text-lg">
         Registrar Comida
       </button>
     </form>
   </div>
 
-  <!-- Columna Derecha: Información del Usuario -->
-  <div class="bg-white p-6 rounded-lg shadow-md min-h-[250px]">
-    <h3 class="text-xl font-bold text-gray-700 mb-4">Información del Empleado</h3>
-    <!-- Estado Inicial -->
-    <div *ngIf="!scannedUser" class="text-center text-gray-400 pt-10">
-      <p>Esperando escaneo...</p>
-    </div>
-    <!-- Información del Usuario Escaneado -->
-    <div *ngIf="scannedUser">
-      <p class="text-lg"><span class="font-semibold">Nombre:</span> {{ scannedUser.name }}</p>
-      <p class="text-gray-600"><span class="font-semibold">ID:</span> {{ scannedUser.employeeId }}</p>
-      <hr class="my-4">
-      <h4 class="font-semibold mb-2">Comidas de Hoy:</h4>
+  <!-- Columna Derecha: Información del Empleado -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Información del Empleado</h2>
+
+    <div *ngIf="scannedEmployee; else waiting" class="space-y-4">
+      <div>
+        <p class="text-sm font-medium text-gray-500">Nombre</p>
+        <p class="text-xl font-semibold text-gray-900">{{ scannedEmployee.name }}</p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">ID de Carné</p>
+        <p class="text-lg text-gray-700">{{ scannedEmployee.id }}</p>
+      </div>
+      <hr class="my-6">
+      <h3 class="text-lg font-semibold text-gray-800">Comidas Registradas Hoy</h3>
       <div class="flex space-x-2">
-        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('breakfast')">Desayuno</span>
-        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('lunch')">Almuerzo</span>
-        <span class="px-3 py-1 text-sm rounded-full" [ngClass]="getMealStatusClass('dinner')">Cena</span>
+         <span [ngClass]="getMealBadgeClass('Desayuno')">D</span>
+         <span [ngClass]="getMealBadgeClass('Almuerzo')">A</span>
+         <span [ngClass]="getMealBadgeClass('Cena')">C</span>
       </div>
     </div>
+
+    <ng-template #waiting>
+      <div class="text-center text-gray-500 py-10">
+        <p>Esperando escaneo...</p>
+      </div>
+    </ng-template>
+
+    <!-- Notificaciones / Alertas -->
+    <div *ngIf="notification.message" [ngClass]="notification.type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'" class="border-l-4 p-4 mt-6" role="alert">
+      <p class="font-bold">{{ notification.type === 'success' ? 'Éxito' : 'Error' }}</p>
+      <p>{{ notification.message }}</p>
+    </div>
+
   </div>
-
-</div>
-
-<!-- Notificación Flotante (Toast) -->
-<div *ngIf="notification.message"
-  class="fixed bottom-5 right-5 px-6 py-3 rounded-lg text-white shadow-xl transition-opacity duration-300"
-  [ngClass]="notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'"
->
-  {{ notification.message }}
 </div>

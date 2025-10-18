@@ -14,14 +14,14 @@ export class Admin implements OnInit {
   private firebaseService = inject(FirebaseService);
 
   employees$!: Observable<Employee[]>;
-  newEmployee: Employee = { id: '', name: '', employeeId: '' };
+  newEmployee: Employee = { id: '', name: '' };
 
   ngOnInit(): void {
     this.employees$ = this.firebaseService.getEmployees();
   }
 
   onAddEmployee(form?: NgForm) {
-    if (!this.newEmployee.id || !this.newEmployee.name || !this.newEmployee.employeeId) {
+    if (!this.newEmployee.id || !this.newEmployee.name) {
       alert('Todos los campos son obligatorios');
       return;
     }
@@ -32,7 +32,7 @@ export class Admin implements OnInit {
         if (form) {
           form.resetForm();
         }
-        this.newEmployee = { id: '', name: '', employeeId: '' }; // Limpiamos el objeto
+        this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
       })
       .catch(err => alert('Error al añadir empleado: ' + err.message));
   }
