@@ -1,7 +1,10 @@
 // src/app/services/firebase.service.ts
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Firestore, collection, doc, getDoc, setDoc, collectionData, query, where, getDocs, deleteDoc } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Auth, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from '@angular/fire/auth';
+import { Observable } from 'rxjs'; // Probablemente ya la tienes
+
 
 export interface Employee {
   id?: string;
@@ -19,8 +22,8 @@ export interface MealRecord {
 
 // Una nueva interfaz para los reportes, que incluye el nombre del empleado
 export interface ReportEntry extends MealRecord {
-    id: string;
-    employeeName: string;
+  id: string;
+  employeeName: string;
 }
 
 
@@ -28,6 +31,7 @@ export interface ReportEntry extends MealRecord {
   providedIn: 'root'
 })
 export class FirebaseService {
+  private auth: Auth = inject(Auth);
 
   constructor(private firestore: Firestore) { }
 
@@ -106,5 +110,34 @@ export class FirebaseService {
     });
 
     return reportEntries.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  login({ email, password }: any) {
+    return signInWithEmailAndPassword(this.auth, email, password);
+  }
+
+  // Cerrar sesión
+  logout() {
+    return signOut(this.auth);
+  }
+
+  // Observar el estado de autenticación
+  authState$(): Observable<User | null> {
+    return new Observable(subscriber => {
+      const unsubscribe = onAuthStateChanged(this.auth, user => {
+        subscriber.next(user);
+      });
+      return unsubscribe; // Para limpiar la suscripción
+    });
+  }
+
+  // Obtener el rol de un usuario desde Firestore
+  async getUserRole(uid: string): Promise<string | null> {
+    const userDocRef = doc(this.firestore, `users/${uid}`);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      return docSnap.data()['role'];
+    }
+    return null;
   }
 }
