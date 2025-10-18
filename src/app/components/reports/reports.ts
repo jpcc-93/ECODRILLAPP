@@ -40,6 +40,13 @@ export class Reports {
     }, { breakfasts: 0, lunches: 0, dinners: 0 });
   }
 
+  async onDeleteMeal(mealId: string) {
+    if (confirm('¿Estás seguro de que quieres eliminar este registro de comida?')) {
+      await this.firebaseService.deleteMeal(mealId);
+      this.generateReport();
+    }
+  }
+
   downloadExcel(): void {
     if (!this.reportData || this.reportData.length === 0) {
       alert('No hay datos para exportar.');
@@ -47,6 +54,7 @@ export class Reports {
     }
 
     const dataForExcel = this.reportData.map(entry => ({
+      Cedula: entry.userId,
       Fecha: entry.date,
       Empleado: entry.employeeName,
       Comida: entry.mealType.charAt(0).toUpperCase() + entry.mealType.slice(1)

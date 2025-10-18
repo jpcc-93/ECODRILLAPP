@@ -10,6 +10,7 @@ export interface Employee {
 }
 
 export interface MealRecord {
+  id?: string;
   userId: string;
   mealType: 'Desayuno' | 'Almuerzo' | 'Cena';
   date: string; // Formato YYYY-MM-DD
@@ -17,6 +18,7 @@ export interface MealRecord {
 
 // Una nueva interfaz para los reportes, que incluye el nombre del empleado
 export interface ReportEntry extends MealRecord {
+    id: string;
     employeeName: string;
 }
 
@@ -40,13 +42,18 @@ export class FirebaseService {
     const recordsCollectionRef = collection(this.firestore, 'meal_records');
     const q = query(recordsCollectionRef, where('userId', '==', barcodeId), where('date', '==', today));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as MealRecord);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MealRecord));
   }
 
   async registerMeal(record: MealRecord): Promise<void> {
-    const docId = `${record.userId}_${record.date}_${record.mealType}`;
+    const docId = `${record.userId}_${record.date}_${record.mealType}_${Math.random().toString(36).substring(2, 15)}`
     const mealDocRef = doc(this.firestore, `meal_records/${docId}`);
     await setDoc(mealDocRef, record);
+  }
+
+  deleteMeal(mealId: string): Promise<void> {
+    const mealDocRef = doc(this.firestore, `meal_records/${mealId}`);
+    return deleteDoc(mealDocRef);
   }
 
   getEmployees(): Observable<Employee[]> {
@@ -77,6 +84,7 @@ export class FirebaseService {
     const reportEntries: ReportEntry[] = querySnapshot.docs.map(doc => {
       const record = doc.data() as MealRecord;
       return {
+        id: doc.id,
         ...record,
         employeeName: employeesMap.get(record.userId) || 'Empleado Desconocido'
       };

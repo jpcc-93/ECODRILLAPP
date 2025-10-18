@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms'; // Importamos NgForm
 import { Observable } from 'rxjs';
-import { FirebaseService, Employee } from '../../services/firebase';
+import { FirebaseService, Employee, MealRecord } from '../../services/firebase';
 
 @Component({
   selector: 'app-admin',
@@ -26,15 +26,24 @@ export class Admin implements OnInit {
       return;
     }
 
-    this.firebaseService.addEmployee(this.newEmployee)
-      .then(() => {
-        alert('¡Empleado añadido con éxito!');
-        if (form) {
-          form.resetForm();
-        }
-        this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
-      })
-      .catch(err => alert('Error al añadir empleado: ' + err.message));
+
+
+    this.firebaseService.getEmployees().subscribe(employees => {
+      const employeeExists = employees.some(emp => emp.id === this.newEmployee.id);
+      if (employeeExists) {
+        alert('Ya existe un empleado con este ID.');
+      } else {
+        this.firebaseService.addEmployee(this.newEmployee)
+          .then(() => {
+            alert('¡Empleado añadido con éxito!');
+            if (form) {
+              form.resetForm();
+            }
+            this.newEmployee = { id: '', name: '' }; // Limpiamos el objeto
+          })
+          .catch(err => alert('Error al añadir empleado: ' + err.message));
+      }
+    });
   }
 
   onDeleteEmployee(id: string) {
