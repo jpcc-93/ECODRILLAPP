@@ -2,20 +2,37 @@
 import { Routes } from '@angular/router';
 
 // Importamos los componentes que acabamos de crear
+import { Login } from './auth/login/login';
 import { Scanner } from './components/scanner/scanner';
 import { Admin } from './components/admin/admin';
 import { Reports } from './components/reports/reports';
+import { authGuard } from './auth/auth-guard';
 
 export const routes: Routes = [
-  // Si el usuario va a la URL principal, lo redirigimos al scanner
+   // RUTAS PÚBLICAS
+  { path: 'login', component: Login },
+
+  // RUTAS PROTEGIDAS
+  { 
+    path: 'scanner', 
+    component: Scanner, 
+    canActivate: [authGuard],
+    data: { roles: ['admin', 'aux'] }
+  },
+  { 
+    path: 'admin', 
+    component: Admin, 
+    canActivate: [authGuard], // Aplicamos el guardia
+    data: { roles: ['admin'] } // Le decimos al guardia que solo el rol 'admin' puede entrar
+  },
+  { 
+    path: 'reports', 
+    component: Reports, 
+    canActivate: [authGuard], // Aplicamos el guardia también aquí
+    data: { roles: ['admin'] } // Solo 'admin' puede ver los reportes
+  },
+
+  // Redirecciones
   { path: '', redirectTo: '/scanner', pathMatch: 'full' },
-
-  // Cuando el usuario vaya a la URL /scanner, se mostrará el ScannerComponent
-  { path: 'scanner', component: Scanner },
-
-  // Cuando vaya a /admin, se mostrará el AdminComponent
-  { path: 'admin', component: Admin },
-
-  // Y cuando vaya a /reports, se mostrará el ReportsComponent
-  { path: 'reports', component: Reports },
+  { path: '**', redirectTo: '/scanner' } // Si no encuentra la ruta, va al scanner
 ];
