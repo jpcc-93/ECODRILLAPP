@@ -13,7 +13,6 @@ import { FirebaseService } from './services/firebase';
 })
 export class App implements OnInit {
   protected readonly title = signal('ECODRILLAPP');
-
   isLoggedIn = false;
   userRole: string | null = null;
 
