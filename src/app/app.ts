@@ -1,13 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common'; // Necesario para *ngIf
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FirebaseService } from './services/firebase';
 
 @Component({
+  standalone: true,
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule], // Añadir CommonModule
+  imports: [RouterModule, CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrls: ['./app.css']
 })
 export class App implements OnInit {
   protected readonly title = signal('ECODRILLAPP');
