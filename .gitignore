@@ -43,3 +43,6 @@ __screenshots__/
 Thumbs.db
 # Ignorar archivos de configuración sensibles
 src/environments/environment.ts
+
+# Agent
+.agent/

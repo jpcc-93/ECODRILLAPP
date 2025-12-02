@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirebaseService, Employee, MealRecord } from '../../services/firebase';
@@ -12,10 +12,22 @@ type NotificationType = 'success' | 'error';
   templateUrl: './scanner.html',
   styleUrl: './scanner.css'
 })
-export class Scanner {
+export class Scanner implements AfterViewInit {
 
   private firebaseService = inject(FirebaseService);
-  
+
+  @ViewChild('barcodeInput') barcodeInput!: ElementRef;
+
+  ngAfterViewInit() {
+    this.setFocus();
+  }
+
+  setFocus() {
+    setTimeout(() => {
+      this.barcodeInput?.nativeElement.focus();
+    }, 0);
+  }
+
   barcodeId: string = '';
   scannedEmployee: Employee | null = null;
   todayMeals: MealType[] = [];
@@ -72,6 +84,8 @@ export class Scanner {
       console.error(error);
     } finally {
       this.isLoading = false;
+      this.barcodeId = '';
+      this.setFocus();
     }
   }
 
